@@ -1,0 +1,20 @@
+query Project(
+  $fullPath: ID!
+  $issueID: String
+  $mergeRequestID: String!
+  $includeIssue: Boolean!
+) {
+  project(fullPath: $fullPath) {
+    issue(iid: $issueID) @include(if: $includeIssue) {
+      iid
+      title
+      webUrl
+    }
+
+    mergeRequest(iid: $mergeRequestID) {
+      iid
+      title
+      webUrl
+    }
+  }
+}
