@@ -17,6 +17,7 @@ type TemplateOptions = {
   remoteOriginURL: string;
   issue?: string;
   mergeRequest?: string;
+  data?: Record<string, any>;
 };
 
 class Template {
@@ -25,6 +26,7 @@ class Template {
   remoteOriginURL: string;
   issue?: string;
   mergeRequest?: string;
+  data?: Record<string, any>;
 
   constructor({
     template,
@@ -32,24 +34,27 @@ class Template {
     remoteOriginURL,
     issue,
     mergeRequest,
+    data,
   }: TemplateOptions) {
     this.template = template;
     this.branchName = branchName;
     this.remoteOriginURL = remoteOriginURL;
     this.issue = issue;
     this.mergeRequest = mergeRequest;
+    this.data = data;
   }
 
   async handler() {
     const input = await this.projectQueryInput();
     if (!input?.mergeRequestID) return;
-    const data = await this.data({ ...input, fullPath: this.fullPath });
+    const data = await this.projectData({ ...input, fullPath: this.fullPath });
     if (!data) return;
 
     console.log(
       this.template({
         issue: data.issue,
         mergeRequest: data.mergeRequest,
+        ...this.data,
       })
     );
   }
@@ -84,7 +89,7 @@ class Template {
     return pathFromRemoteURL(this.remoteOriginURL);
   }
 
-  private async data({
+  private async projectData({
     issueID,
     mergeRequestID,
     fullPath,
@@ -113,7 +118,7 @@ class Template {
 type TemplateCommandOptions = Pick<
   TemplateOptions,
   "issue" | "mergeRequest"
-> & { name: string };
+> & { name: string; data?: string };
 export default class
   implements CommandModule<TemplateCommandOptions, TemplateCommandOptions>
 {
@@ -121,7 +126,12 @@ export default class
   describe =
     "Prints out a template defined in ~/.config/glabm/templates/<name>.hbs";
 
-  async handler({ name, mergeRequest, issue }: TemplateCommandOptions) {
+  handler = async ({
+    name,
+    mergeRequest,
+    issue,
+    data,
+  }: TemplateCommandOptions) => {
     const [_, branchName, remoteOriginURL] = await Promise.all([
       registerPartials(),
       getCurrentBranchName(),
@@ -134,15 +144,29 @@ export default class
       issue,
       branchName,
       remoteOriginURL,
+      data: this.deserializeData(data),
     }).handler();
-  }
+  };
 
   builder(yargs: Argv) {
     return yargs
       .positional("name", { type: "string", demandOption: true })
+      .positional("data", {
+        type: "string",
+        description:
+          'JSON of values to pass to templates in the format { "variables": { "key": "value" } }.',
+      })
       .options({
         issue: { type: "string" },
         mergeRequest: { type: "string" },
       });
+  }
+
+  private deserializeData(data?: string): Record<string, any> | undefined {
+    if (!data) return undefined;
+    const parsed = JSON.parse(data);
+    if (typeof parsed["variables"] !== "object") return undefined;
+
+    return parsed["variables"] ?? undefined;
   }
 }
