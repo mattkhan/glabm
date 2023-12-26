@@ -88,7 +88,11 @@ Partials are globally available by their file name. Using the example above, `{{
 
 The available global variables in templates are `issue` and `mergeRequest`, with the schema defined below.
 
-Arbitrary data can be added as globally available variables with the `--data` option, e.g. `--data='{ "variables": { "postMessage": "hi" } }'`. The variables must be nested under the `variables` key and in JSON format.
+Arbitrary data can be added as globally available variables with the `--data` or `--data-file` options. Both options require the data to be formatted in JSON with the variables nested under the `variables` key, e.g. `--data='{ "variables": { "postMessage": "hi" } }'`.
+
+`--data` requires a JSON string as an argument.
+
+`--data-file` requires the path to a file under `~/.config/glabm/templates/`.
 
 ```typescript
 type Issue = {
@@ -120,6 +124,7 @@ Example usage:
 ```bash
 glabm template title
 glabm template title_with_data --data='{ "variables": { "postMessage": "hi" } }'
+glabm template title_with_data --dataFile=data.json
 
 # Override `glabm config` configured issue and mergeRequest values.
 # Defaults to the `glabm config` configured values for any key that

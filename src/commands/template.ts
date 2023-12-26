@@ -10,6 +10,9 @@ import { compile, registerPartials } from "../lib/templates";
 import { branches } from "../db/schema";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
+import { promises } from "fs";
+import { TEMPLATES_DIR } from "../lib/directories";
+import path from "path";
 
 type TemplateOptions = {
   template: HandlebarsTemplateDelegate;
@@ -118,7 +121,7 @@ class Template {
 type TemplateCommandOptions = Pick<
   TemplateOptions,
   "issue" | "mergeRequest"
-> & { name: string; data?: string };
+> & { name: string; data?: string; dataFile?: string };
 export default class
   implements CommandModule<TemplateCommandOptions, TemplateCommandOptions>
 {
@@ -131,11 +134,17 @@ export default class
     mergeRequest,
     issue,
     data,
+    dataFile,
   }: TemplateCommandOptions) => {
-    const [_, branchName, remoteOriginURL] = await Promise.all([
+    const [_, branchName, remoteOriginURL, jsonData] = await Promise.all([
       registerPartials(),
       getCurrentBranchName(),
       getRemoteOriginURL(),
+      dataFile &&
+        dataFile !== "" &&
+        promises.readFile(path.join(TEMPLATES_DIR, dataFile), {
+          encoding: "utf-8",
+        }),
     ]);
 
     new Template({
@@ -144,7 +153,7 @@ export default class
       issue,
       branchName,
       remoteOriginURL,
-      data: this.deserializeData(data),
+      data: this.deserializeData(jsonData || data),
     }).handler();
   };
 
@@ -155,6 +164,13 @@ export default class
         type: "string",
         description:
           'JSON of values to pass to templates in the format { "variables": { "key": "value" } }.',
+        conflicts: "dataFile",
+      })
+      .positional("dataFile", {
+        type: "string",
+        description:
+          'Relative path to file under ~/.config/glabm/templates/ containing JSON of values to pass to templates in the format { "variables": { "key": "value" } }.',
+        conflicts: "data",
       })
       .options({
         issue: { type: "string" },
