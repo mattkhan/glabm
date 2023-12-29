@@ -11,6 +11,7 @@ Example:
 git clone git@github.com:mattkhan/glabm.git
 cd glabm
 npm i
+npm run migrate
 npm run build
 npm pack
 npm i -g glabm-1.0.0.tgz # installs glabm globally
