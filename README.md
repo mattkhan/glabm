@@ -89,7 +89,7 @@ Partials are globally available by their file name. Using the example above, `{{
 
 The available global variables in templates are `issue` and `mergeRequest`, with the schema defined below.
 
-Arbitrary data can be added as globally available variables with the `--data` or `--data-file` options. Both options require the data to be formatted in JSON with the variables nested under the `variables` key, e.g. `--data='{ "variables": { "postMessage": "hi" } }'`.
+Custom data can be added as globally available variables with the `--data` or `--data-file` options. Both options require the data to be formatted in JSON with the variables nested under the `variables` key, e.g. `--data='{ "variables": { "postMessage": "hi" } }'`.
 
 `--data` requires a JSON string as an argument.
 
