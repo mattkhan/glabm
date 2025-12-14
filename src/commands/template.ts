@@ -58,7 +58,7 @@ class Template {
         issue: data.issue,
         mergeRequest: data.mergeRequest,
         ...this.data,
-      })
+      }),
     );
   }
 
@@ -69,7 +69,7 @@ class Template {
       .select()
       .from(branches)
       .where(
-        sql`${branches.name} = ${branchName} AND ${branches.remoteOriginURL} = ${remoteOriginURL}`
+        sql`${branches.name} = ${branchName} AND ${branches.remoteOriginURL} = ${remoteOriginURL}`,
       );
 
     const issueID = issue ?? results[0]?.issueID ?? undefined;
@@ -108,7 +108,7 @@ class Template {
       },
     });
 
-    if (!result.data.project) return;
+    if (!result.data?.project) return;
     if (!result.data.project.mergeRequest?.webUrl) return;
 
     return {
@@ -122,9 +122,10 @@ type TemplateCommandOptions = Pick<
   TemplateOptions,
   "issue" | "mergeRequest"
 > & { name: string; data?: string; dataFile?: string };
-export default class
-  implements CommandModule<TemplateCommandOptions, TemplateCommandOptions>
-{
+export default class implements CommandModule<
+  TemplateCommandOptions,
+  TemplateCommandOptions
+> {
   command = "template <name>";
   describe =
     "Prints out a template defined in ~/.config/glabm/templates/<name>.hbs";
